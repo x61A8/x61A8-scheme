@@ -88,6 +88,21 @@
 								       (scheme-proc-env proc)))
 			  (apply proc args)))))))))
 
+;;; Common Lisp function integration
+(defparameter *cl-equivs*
+  '(+ - * / = < > <= >= cons car cdr not append list read member
+    (null? null) (eq? eq) (equal? equal) (eqv? eql)
+    (write prin1) (display princ) (newline terpri))
+  "Common Lisp functions which are equivalent to scheme functions, or trivial to convert.")
+
+(defun init-cl-equiv (func)
+  "Enter func into the scheme global environment."
+  (if (symbolp func)
+      (set-global-var func (symbol-function func))
+      (if (symbolp (second func))
+	  (set-global-var (first func) (symbol-function (second func)))
+	  (set-global-var (first func) (compile nil (second func))))))
+
 ;;; User Interaction
 (defun init-global-env ()
   "Initializes the global scheme environment for initial use."
@@ -100,7 +115,9 @@
   (set-global-var 'lambda (make-scheme-primitive :type :lambda))
   (set-global-var 'if (make-scheme-primitive :type :if))
   (set-global-var 'set! (make-scheme-primitive :type :set!))
-  (set-global-var 'begin (make-scheme-primitive :type :begin)))
+  (set-global-var 'begin (make-scheme-primitive :type :begin))
+
+  (mapc #'init-cl-equiv *cl-equivs*))
 
 (defun start-scheme-rspl ()
   "Starts the read-scheval-print-loop."
