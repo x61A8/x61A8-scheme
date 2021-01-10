@@ -117,7 +117,8 @@
   (set-global-var 'set! (make-scheme-primitive :type :set!))
   (set-global-var 'begin (make-scheme-primitive :type :begin))
 
-  (mapc #'init-cl-equiv *cl-equivs*))
+  (mapc #'init-cl-equiv *cl-equivs*)
+  *global-env*)
 
 (defun start-scheme-rspl ()
   "Starts the read-scheval-print-loop."
