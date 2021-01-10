@@ -69,6 +69,11 @@
   "Find the macro name in *registered-macros* and call it with args."
   (apply (gethash name *registered-macros*) args))
 
+(defun install-scheme-macro (name macro)
+  "Enter the macro `name` into *global-env* as name."
+  (declare (ignore macro))
+  (set-global-var name (make-scheme-macro-intrinisic :name name)))
+
 ;;; Evaluation
 (defstruct scheme-primitive
   "Represents a scheme primitive."
@@ -138,9 +143,8 @@
 
   (mapc #'init-cl-equiv *cl-equivs*)
 
-  (loop for name being the hash-key of *registered-macros*
-	do (set-global-var name (make-scheme-macro-intrinisic :name name)))
-  
+  (maphash #'install-scheme-macro *registered-macros*)
+    
   *global-env*)
 
 (defun start-scheme-rspl ()
