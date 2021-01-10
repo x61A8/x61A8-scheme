@@ -54,11 +54,11 @@
   (nconc (mapcar #'cons vars vals) env))
 
 ;;; Evaluation
-(defstruct (scheme-primitive)
+(defstruct scheme-primitive
   "Represents a scheme primitive."
   type)
 
-(defstruct (scheme-proc)
+(defstruct scheme-proc
   "Represents a scheme procedure."
   code (env nil) (params nil))
 
