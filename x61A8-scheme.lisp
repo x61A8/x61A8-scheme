@@ -19,7 +19,6 @@
   "Applies rest to the list twice."
   (rest (rest list)))
 
-
 ;;; Environments
 (defvar *global-env* nil "The global scheme environment.")
 
@@ -52,6 +51,23 @@
 (defun extend-env (vars vals env)
   "Add the var-val pairs to env."
   (nconc (mapcar #'cons vars vals) env))
+
+;;; Scheme macro infrastructure
+(defvar *registered-macros* (make-hash-table :test 'eq)
+  "Storage of scheme macros (functions that return scheme expressions).")
+
+(defstruct scheme-macro-intrinisic
+  "Structure used to identify macros during schevaluation."
+  name)
+
+(defmacro def-scheme-macro (name params &body body)
+  "Define a scheme macro and register it."
+  `(setf (gethash ',name *registered-macros*)
+	 (lambda ,params .,body)))
+
+(defun call-scheme-macro (name args)
+  "Find the macro name in *registered-macros* and call it with args."
+  (apply (gethash name *registered-macros*) args))
 
 ;;; Evaluation
 (defstruct scheme-primitive
@@ -105,23 +121,6 @@
       (if (symbolp (second func))
 	  (set-global-var (first func) (symbol-function (second func)))
 	  (set-global-var (first func) (compile nil (second func))))))
-
-;;; Scheme macro infrastructure
-(defvar *registered-macros* (make-hash-table :test 'eq)
-  "Storage of scheme macros (functions that return scheme expressions).")
-
-(defstruct scheme-macro-intrinisic
-  "Structure used to identify macros during schevaluation."
-  name)
-
-(defmacro def-scheme-macro (name params &body body)
-  "Define a scheme macro and register it."
-  `(setf (gethash ',name *registered-macros*)
-	 (lambda ,params .,body)))
-
-(defun call-scheme-macro (name args)
-  "Find the macro name in *registered-macros* and call it with args."
-  (apply (gethash name *registered-macros*) args))
 
 ;;; User Interaction
 (defun init-global-env ()
