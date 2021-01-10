@@ -80,7 +80,10 @@
 				    env))
 		    (:begin (last1 (mapcar (lambda (sub-exp) (scheval sub-exp env))
 					   (rest exp))))))
-		 
+		 ((scheme-macro-intrinisic-p proc)
+		  (scheval (call-scheme-macro (scheme-macro-intrinisic-name proc)
+					      (rest exp))
+			   env))
 		 (t (let ((args (mapcar (lambda (arg) (scheval arg env)) (rest exp))))
 		      (if (scheme-proc-p proc)			    
 			  (scheval (scheme-proc-code proc) (extend-env (scheme-proc-params proc)
@@ -103,6 +106,23 @@
 	  (set-global-var (first func) (symbol-function (second func)))
 	  (set-global-var (first func) (compile nil (second func))))))
 
+;;; Scheme macro infrastructure
+(defvar *registered-macros* (make-hash-table :test 'eq)
+  "Storage of scheme macros (functions that return scheme expressions).")
+
+(defstruct scheme-macro-intrinisic
+  "Structure used to identify macros during schevaluation."
+  name)
+
+(defmacro def-scheme-macro (name params &body body)
+  "Define a scheme macro and register it."
+  `(setf (gethash ',name *registered-macros*)
+	 (lambda ,params .,body)))
+
+(defun call-scheme-macro (name args)
+  "Find the macro name in *registered-macros* and call it with args."
+  (apply (gethash name *registered-macros*) args))
+
 ;;; User Interaction
 (defun init-global-env ()
   "Initializes the global scheme environment for initial use."
@@ -118,6 +138,10 @@
   (set-global-var 'begin (make-scheme-primitive :type :begin))
 
   (mapc #'init-cl-equiv *cl-equivs*)
+
+  (loop for name being the hash-key of *registered-macros*
+	do (set-global-var name (make-scheme-macro-intrinisic :name name)))
+  
   *global-env*)
 
 (defun start-scheme-rspl ()
