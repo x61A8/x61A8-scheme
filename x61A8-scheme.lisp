@@ -154,3 +154,7 @@
   (init-global-env)
   (start-scheme-rspl))
 
+;;; Scheme Macros
+(def-scheme-macro let (bindings &rest body)
+  `((,(make-scheme-primitive :type :lambda) ,(mapcar #'first bindings) .,body)
+    .,(mapcar #'second bindings)))
