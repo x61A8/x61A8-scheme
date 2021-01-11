@@ -112,14 +112,28 @@
 
 ;;; Common Lisp function integration
 (defparameter *cl-equivs*
-  '(;; booleans
+  '(;; Booleans
     not (boolean? (lambda (obj) (typep obj 'boolean)))
-    
+    ;; Equivalence predicates
     (eqv? eql) (eq? eq) (equal? equal)
-    cons car cdr
-
-    (null? null) list append
-    member
+    ;; Pairs and lists
+    (pair? consp) cons car cdr
+    (set-car! (lambda (pair obj) (setf (car pair) obj)))
+    (set-cdr! (lambda (pair obj) (setf (cdr pair) obj)))
+    CAAR CADR CDAR CDDR CAAAR CAADR CADAR CADDR CDAAR CDADR CDDAR CDDDR
+    CAAAAR CAAADR CAADAR CAADDR CADAAR CADADR CADDAR CADDDR CDAAAR CDAADR
+    CDADAR CDADDR CDDAAR CDDADR CDDDAR CDDDDR
+    (null? null) list length append reverse
+    (list-tail (lambda (list k) (nthcdr k list)))
+    (list-ref (lambda (list k) (nth k list)))
+    (last-pair last)
+    (memq (lambda (obj list) (member obj list :test #'eq)))
+    (memv (lambda (obj list) (member obj list :test #'eql)))
+    (member (lambda (obj list) (member obj list :test #'equal)))
+    (assq (lambda (obj alist) (assoc obj alist :test #'eq)))
+    (assv (lambda (obj alist) (assoc obj alist :test #'eql)))
+    (assoc (lambda (obj alist) (assoc obj alist :test #'equal)))
+    
     = < > <= >=
     + * - /
     read (write prin1) (display princ) (newline terpri))
