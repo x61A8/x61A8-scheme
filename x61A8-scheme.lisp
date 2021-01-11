@@ -191,3 +191,8 @@
 	       (,(make-scheme-primitive :type :if) ,var
 		,var
 		(,(make-scheme-macro-intrinisic :name 'or) .,(rest tests))))))))
+
+(def-scheme-macro letrec (bindings &rest body)
+  `(,(make-scheme-macro-intrinisic :name 'let) ,(mapcar (lambda (v) (list (first v) nil)) bindings)
+    ,@(mapcar (lambda (v) `(,(make-scheme-primitive :type :set!) .,v)) bindings)
+    .,body))
