@@ -99,8 +99,10 @@
 		    (:set! (set-var (second exp)
 				    (scheval (third exp) env)
 				    env))
-		    (:begin (last1 (mapcar (lambda (sub-exp) (scheval sub-exp env))
-					   (rest exp))))))
+		    (:begin
+		     (pop exp)
+		     (loop while (rest exp) do (scheval (pop exp) env))
+		     (scheval (first exp) env))))
 		 ((scheme-macro-intrinisic-p proc)
 		  (scheval (call-scheme-macro (scheme-macro-intrinisic-name proc)
 					      (rest exp))
