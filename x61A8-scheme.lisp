@@ -172,7 +172,19 @@
     (inexact->exact (lambda (z) (if (typep z 'complex)
 				    (coerce z '(complex (rational)))
 				    (rational z))))
-    ; MISSING: number->string string->number
+    ;; MISSING: number->string string->number
+
+    ;; Characters
+    (char? characterp) (char=? char=) (char<? char<) (char>? char>)
+    (char<=? char<=) (char>=? char>=) (char-ci=? char-equal)
+    (char-ci<? char-lessp) (char-ci>? char-greaterp)
+    (char-ci<=? char-not-greaterp) (char-ci>=? char-not-lessp)
+    (char-alphabetic? alpha-char-p) (char-numeric? digit-char-p)
+    (char-whitespace? (lambda (char) (or (char= char #\Space)
+					 (not (graphic-char-p char)))))
+    (char-upper-case? upper-case-p) (char-lower-case? lower-case-p)
+    (char->integer char-code) (integer->char code-char)
+    char-upcase char-downcase
         
     read (write prin1) (display princ) (newline terpri))
   "Common Lisp functions which are equivalent to scheme functions, or trivial to convert.")
