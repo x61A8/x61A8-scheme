@@ -11,10 +11,6 @@
       list
       (cons tag list)))
 
-(defun last1 (list)
-  "Return the last element (not cons cell) of the list."
-  (first (last list)))
-
 (defun rest2 (list)
   "Applies rest to the list twice."
   (rest (rest list)))
