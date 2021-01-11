@@ -81,34 +81,42 @@
 
 (defun scheval (exp env)
   "Evaluate the scheme expression in the scheme environment."
-  (cond ((symbolp exp) (get-var exp env))
-	((atom exp) exp)
-	(t ; exp is a list
-	 (let ((proc (scheval (first exp) env)))
-	   (cond ((scheme-primitive-p proc)
-		  (ecase (scheme-primitive-type proc)
-		    (:quote (second exp))
-		    (:lambda (make-scheme-proc :env env :params (second exp) :code (tag-list 'begin (rest2 exp))))
-		    (:if (if (scheval (second exp) env)
-			     (scheval (third exp) env)
-			     (scheval (fourth exp) env)))
-		    (:set! (set-var (second exp)
-				    (scheval (third exp) env)
-				    env))
-		    (:begin
-		     (pop exp)
-		     (loop while (rest exp) do (scheval (pop exp) env))
-		     (scheval (first exp) env))))
-		 ((scheme-macro-intrinisic-p proc)
-		  (scheval (call-scheme-macro (scheme-macro-intrinisic-name proc)
-					      (rest exp))
-			   env))
-		 (t (let ((args (mapcar (lambda (arg) (scheval arg env)) (rest exp))))
-		      (if (scheme-proc-p proc)			    
-			  (scheval (scheme-proc-code proc) (extend-env (scheme-proc-params proc)
-								       args
-								       (scheme-proc-env proc)))
-			  (apply proc args)))))))))
+  (prog ()
+   :scheval
+     (return
+       (cond ((symbolp exp) (get-var exp env))
+	     ((atom exp) exp)
+	     (t ; exp is a list
+	      (let ((proc (scheval (first exp) env)))
+		(cond ((scheme-primitive-p proc)
+		       (ecase (scheme-primitive-type proc)
+			 (:quote (second exp))
+			 (:lambda (make-scheme-proc :env env :params (second exp) :code (tag-list 'begin (rest2 exp))))
+			 (:if (setf exp (if (scheval (second exp) env)
+					    (third exp)
+					    (fourth exp)))
+			      (go :scheval))
+			 (:set! (set-var (second exp)
+					 (scheval (third exp) env)
+					 env))
+			 (:begin
+			  (pop exp)
+			  (loop while (rest exp) do (scheval (pop exp) env))
+			  (setf exp (first exp))
+			  (go :scheval))))
+		      ((scheme-macro-intrinisic-p proc)
+		       (setf exp (call-scheme-macro (scheme-macro-intrinisic-name proc)
+						    (rest exp)))
+		       (go :scheval))
+		      (t (let ((args (mapcar (lambda (arg) (scheval arg env)) (rest exp))))
+			   (if (scheme-proc-p proc)			    
+			       (progn
+				 (setf exp (scheme-proc-code proc)
+				       env (extend-env (scheme-proc-params proc)
+						       args
+						       (scheme-proc-env proc)))
+				 (go :scheval))
+			       (apply proc args)))))))))))
 
 ;;; Common Lisp function integration
 (defparameter *cl-equivs*
