@@ -112,9 +112,15 @@
 
 ;;; Common Lisp function integration
 (defparameter *cl-equivs*
-  '(+ - * / = < > <= >= cons car cdr not append list read member
-    (null? null) (eq? eq) (equal? equal) (eqv? eql)
-    (write prin1) (display princ) (newline terpri))
+  '(not
+    (eqv? eql) (eq? eq) (equal? equal)
+    cons car cdr
+
+    (null? null) list append
+    member
+    = < > <= >=
+    + * - /
+    read (write prin1) (display princ) (newline terpri))
   "Common Lisp functions which are equivalent to scheme functions, or trivial to convert.")
 
 (defun init-cl-equiv (func)
