@@ -138,9 +138,34 @@
 
     ;; Symbols
     (symbol? symbolp) (symbol->string symbol-name) (string->symbol make-symbol)
-    
-    = < > <= >=
-    + * - /
+
+    ;; Numbers
+    (number? numberp) (complex? complexp) (real? realp) (rational? rationalp)
+    (integer? integerp) (zero? zerop) (positive? plusp) (negative? minusp)
+    (odd? oddp) (even? evenp)
+    (exact? (lambda (z) (or (typep z 'rational)
+			    (typep z '(complex (rational))))))
+    (inexact? (lambda (z) (or (typep z 'float)
+			      (typep z '(complex (float))))))
+    = < > <= >= max min + * - / abs
+    (quotient truncate) (remainder rem) (modulo mod)
+    numerator denominator gcd lcm
+    floor ceiling truncate round
+    rationalize ; MISSING: two arg rationalize
+    exp log sin cos tan asin acos atan sqrt expt
+    (make-rectangular complex)
+    (make-polar (lambda (magnitude angle) (complex (* (cos angle) magnitude)
+						   (* (sin angle) magnitude))))
+    (real-part realpart) (imag-part imagpart)
+    (magnitude abs) (angle phase)
+    (exact->inexact (lambda (z) (if (typep z 'complex)
+				    (coerce z '(complex (float)))
+				    (float z))))
+    (inexact->exact (lambda (z) (if (typep z 'complex)
+				    (coerce z '(complex (rational)))
+				    (rational z))))
+    ; MISSING: number->string string->number
+        
     read (write prin1) (display princ) (newline terpri))
   "Common Lisp functions which are equivalent to scheme functions, or trivial to convert.")
 
