@@ -112,7 +112,9 @@
 
 ;;; Common Lisp function integration
 (defparameter *cl-equivs*
-  '(not
+  '(;; booleans
+    not (boolean? (lambda (obj) (typep obj 'boolean)))
+    
     (eqv? eql) (eq? eq) (equal? equal)
     cons car cdr
 
