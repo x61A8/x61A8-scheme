@@ -114,8 +114,10 @@
 (defparameter *cl-equivs*
   '(;; Booleans
     not (boolean? (lambda (obj) (typep obj 'boolean)))
+
     ;; Equivalence predicates
     (eqv? eql) (eq? eq) (equal? equal)
+
     ;; Pairs and lists
     (pair? consp) cons car cdr
     (set-car! (lambda (pair obj) (setf (car pair) obj)))
@@ -133,6 +135,9 @@
     (assq (lambda (obj alist) (assoc obj alist :test #'eq)))
     (assv (lambda (obj alist) (assoc obj alist :test #'eql)))
     (assoc (lambda (obj alist) (assoc obj alist :test #'equal)))
+
+    ;; Symbols
+    (symbol? symbolp) (symbol->string symbol-name) (string->symbol make-symbol)
     
     = < > <= >=
     + * - /
