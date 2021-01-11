@@ -196,3 +196,9 @@
   `(,(make-scheme-macro-intrinisic :name 'let) ,(mapcar (lambda (v) (list (first v) nil)) bindings)
     ,@(mapcar (lambda (v) `(,(make-scheme-primitive :type :set!) .,v)) bindings)
     .,body))
+
+(def-scheme-macro define (name &rest body)
+  (if (atom name)
+      `(,(make-scheme-primitive :type :begin) (,(make-scheme-primitive :type :set!) ,name . ,body) ',name)
+      `(,(make-scheme-macro-intrinisic :name 'define) ,(first name)
+	     (lambda ,(rest name) . ,body))))
