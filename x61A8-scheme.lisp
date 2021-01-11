@@ -163,3 +163,31 @@
 (def-scheme-macro let (bindings &rest body)
   `((,(make-scheme-primitive :type :lambda) ,(mapcar #'first bindings) .,body)
     .,(mapcar #'second bindings)))
+
+(def-scheme-macro cond (&rest clauses)
+  (let ((test (first (first clauses)))
+	(sequence (rest (first clauses))))
+    (cond ((null clauses) nil)
+	  ((eq 'else test)
+	   `(,(make-scheme-primitive :type :begin) . ,sequence))
+	  ((null sequence)
+	   `(,(make-scheme-macro-intrinisic :name 'or) ,test (,(make-scheme-macro-intrinisic :name 'cond) .,(rest clauses))))
+	  (t `(,(make-scheme-primitive :type :if) ,test
+	       (,(make-scheme-primitive :type :begin) .,sequence)
+	       (,(make-scheme-macro-intrinisic :name 'cond) .,(rest clauses)))))))
+
+(def-scheme-macro and (&rest tests)
+  (cond ((null tests) t)
+	((= (length tests) 1) (first tests))
+	(t `(,(make-scheme-primitive :type :if) ,(first tests)
+	     (,(make-scheme-macro-intrinisic :name 'and) .,(rest tests))
+	     nil))))
+
+(def-scheme-macro or (&rest tests)
+  (cond ((null tests) nil)
+	((= (length tests) 1) (first tests))
+	(t (let ((var (gensym)))
+	     `(,(make-scheme-macro-intrinisic :name 'let) ((,var ,(first tests)))
+	       (,(make-scheme-primitive :type :if) ,var
+		,var
+		(,(make-scheme-macro-intrinisic :name 'or) .,(rest tests))))))))
