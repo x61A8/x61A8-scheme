@@ -185,7 +185,21 @@
     (char-upper-case? upper-case-p) (char-lower-case? lower-case-p)
     (char->integer char-code) (integer->char code-char)
     char-upcase char-downcase
-        
+
+    ;; Strings
+    (string? stringp)
+    (make-string (lambda (k &optional (char #\Nul)) (make-string k :initial-element char)))
+    (string-length length) (string-ref char)
+    (string-set! (lambda (string k c) (setf (char string k) c)))
+    (string=? string=) (string-ci=? string-equal)
+    (string<? string<) (string>? string>) (string<=? string<=) (string>=? string>=) 
+    (string-ci<? string-lessp) (string-ci>? string-greaterp)
+    (string-ci<=? string-not-greaterp) (string-ci>=? string-not-lessp)
+    (substring subseq) (string-append (lambda (&rest strings) (apply #'concatenate 'string strings)))
+    (string->list (lambda (string) (coerce string 'list)))
+    (list->string (lambda (list) (coerce list 'string)))
+    (string-copy copy-seq) (string-fill! fill)
+    
     read (write prin1) (display princ) (newline terpri))
   "Common Lisp functions which are equivalent to scheme functions, or trivial to convert.")
 
