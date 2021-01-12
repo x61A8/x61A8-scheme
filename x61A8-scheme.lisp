@@ -242,6 +242,7 @@
 (defun start-scheme-rspl ()
   "Starts the read-scheval-print-loop."
   (loop (format t "~&=x> ")
+	(finish-output)
 	(print (scheval (read) nil))))
 
 (defun scheme ()
