@@ -79,44 +79,84 @@
   "Represents a scheme procedure."
   code (env nil) (params nil))
 
-(defun scheval (exp env)
-  "Evaluate the scheme expression in the scheme environment."
+(defun scheval (expression environment continuation)
+  "Evaluate the scheme expression in the scheme environment, passing the result to continuation."
   (prog ()
    :scheval
-     (return
-       (cond ((symbolp exp) (get-var exp env))
-	     ((atom exp) exp)
-	     (t ; exp is a list
-	      (let ((proc (scheval (first exp) env)))
-		(cond ((scheme-primitive-p proc)
-		       (ecase (scheme-primitive-type proc)
-			 (:quote (second exp))
-			 (:lambda (make-scheme-proc :env env :params (second exp) :code (tag-list 'begin (rest2 exp))))
-			 (:if (setf exp (if (scheval (second exp) env)
-					    (third exp)
-					    (fourth exp)))
-			      (go :scheval))
-			 (:set! (set-var (second exp)
-					 (scheval (third exp) env)
-					 env))
-			 (:begin
-			  (pop exp)
-			  (loop while (rest exp) do (scheval (pop exp) env))
-			  (setf exp (first exp))
-			  (go :scheval))))
-		      ((scheme-macro-intrinisic-p proc)
-		       (setf exp (call-scheme-macro (scheme-macro-intrinisic-name proc)
-						    (rest exp)))
-		       (go :scheval))
-		      (t (let ((args (mapcar (lambda (arg) (scheval arg env)) (rest exp))))
-			   (if (scheme-proc-p proc)			    
-			       (progn
-				 (setf exp (scheme-proc-code proc)
-				       env (extend-env (scheme-proc-params proc)
-						       args
-						       (scheme-proc-env proc)))
-				 (go :scheval))
-			       (apply proc args)))))))))))
+     (let ((exp expression)
+	   (env environment)
+	   (cc continuation))
+       (return
+	 (cond ((symbolp exp) (funcall cc (get-var exp env)))
+	       ((atom exp) (funcall cc exp))
+	       (t ; exp is a list
+		(setf expression (first exp)
+		      continuation
+		      (lambda (proc)
+			(cond ((scheme-primitive-p proc)
+			       (ecase (scheme-primitive-type proc)
+				 (:quote
+				  (funcall cc (second exp)))
+				 (:lambda
+				     (funcall cc (make-scheme-proc :env env
+								   :params (second exp)
+								   :code (tag-list 'begin (rest2 exp)))))
+				 (:if
+				  (setf expression (second exp)
+					environment env
+					continuation (lambda (pred)
+						       (setf expression (if pred (third exp) (fourth exp))
+							     environment env
+							     continuation cc)
+						       (go :scheval)))
+				  (go :scheval))
+				 (:set!
+				  (setf expression (third exp)
+					environment env
+					continuation (lambda (value)
+						       (funcall cc (set-var (second exp) value env))))
+				  (go :scheval))
+				 (:begin
+				  (pop exp) ; remove 'begin
+				  (labels ((scheval-begin (value)
+					     (if (null exp)
+						 (funcall cc value)
+						 (progn
+						   (setf expression (pop exp)
+							 environment env
+							 continuation #'scheval-begin)
+						   (go :scheval)))))
+				    (scheval-begin nil)))))
+			      ((scheme-macro-intrinisic-p proc)
+			       (setf expression (call-scheme-macro (scheme-macro-intrinisic-name proc)
+								   (rest exp))
+				     environment env
+				     continuation cc)
+			       (go :scheval))
+			      (t			       
+			       (let ((accum-args nil))
+				 (labels ((scheval-application (args)					  
+					    (if (scheme-proc-p proc)
+						(progn
+						  (setf expression (scheme-proc-code proc)
+							environment (extend-env (scheme-proc-params proc)
+										args
+										(scheme-proc-env proc))
+							continuation cc)
+						  (go :scheval))
+						(apply proc cc args)))
+					  (scheval-args (remaining-exps)
+					    (if (null remaining-exps)
+						(scheval-application (reverse accum-args))
+						(progn
+						  (setf expression (first remaining-exps)
+							environment env
+							continuation (lambda (val)
+								       (push val accum-args)
+								       (scheval-args (rest remaining-exps))))
+						  (go :scheval)))))				   
+				   (scheval-args (rest exp))))))))
+		(go :scheval)))))))
 
 ;;; Common Lisp function integration
 (defparameter *cl-equivs*
@@ -212,12 +252,15 @@
   "Common Lisp functions which are equivalent to scheme functions, or trivial to convert.")
 
 (defun init-cl-equiv (func)
-  "Enter func into the scheme global environment."
+  "Modify func to accept a continuation and then enter func into the scheme global environment."
   (if (symbolp func)
-      (set-global-var func (symbol-function func))
-      (if (symbolp (second func))
-	  (set-global-var (first func) (symbol-function (second func)))
-	  (set-global-var (first func) (compile nil (second func))))))
+      (init-cl-equiv (list func func))
+      (set-global-var (first func)
+		      (lambda (cc &rest args)
+			(funcall cc (apply (if (symbolp (second func))
+					       (symbol-function (second func))
+					       (compile nil (second func)))
+					   args))))))
 
 ;;; User Interaction
 (defun init-global-env ()
@@ -243,7 +286,7 @@
   "Starts the read-scheval-print-loop."
   (loop (format t "~&=x> ")
 	(finish-output)
-	(print (scheval (read) nil))))
+	(scheval (read) nil #'print)))
 
 (defun scheme ()
   "Initialize and start the scheme rspl."
