@@ -126,7 +126,14 @@
 							 environment env
 							 continuation #'scheval-begin)
 						   (go :scheval)))))
-				    (scheval-begin nil)))))
+				    (scheval-begin nil)))
+				 (:call/cc
+				  (setf expression (list (second exp) (lambda (cont val)
+									(declare (ignore cont))
+									(funcall cc val)))
+					environment env
+					continuation cc)
+				  (go :scheval))))
 			      ((scheme-macro-intrinisic-p proc)
 			       (setf expression (call-scheme-macro (scheme-macro-intrinisic-name proc)
 								   (rest exp))
@@ -275,6 +282,7 @@
   (set-global-var 'if (make-scheme-primitive :type :if))
   (set-global-var 'set! (make-scheme-primitive :type :set!))
   (set-global-var 'begin (make-scheme-primitive :type :begin))
+  (set-global-var 'call-with-current-continuation (make-scheme-primitive :type :call/cc))
 
   (mapc #'init-cl-equiv *cl-equivs*)
 
