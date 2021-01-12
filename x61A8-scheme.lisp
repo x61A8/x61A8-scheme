@@ -199,6 +199,14 @@
     (string->list (lambda (string) (coerce string 'list)))
     (list->string (lambda (list) (coerce list 'string)))
     (string-copy copy-seq) (string-fill! fill)
+
+    ;; Vectors
+    (vector? vectorp) (make-vector (lambda (k &optional (fill 0)) (make-array k :initial-element fill)))
+    vector (vector-length length) (vector-ref aref)
+    (vector-set! (lambda (vector k obj) (setf (aref vector k) obj)))
+    (vector->list (lambda (vector) (coerce vector 'list)))
+    (list->vector (lambda (list) (coerce list 'simple-vector)))
+    (vector-fill! fill)
     
     read (write prin1) (display princ) (newline terpri))
   "Common Lisp functions which are equivalent to scheme functions, or trivial to convert.")
