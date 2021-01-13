@@ -286,12 +286,12 @@
   (set-global-var 'if (make-scheme-primitive :type :if))
   (set-global-var 'set! (make-scheme-primitive :type :set!))
   (set-global-var 'begin (make-scheme-primitive :type :begin))
+  
   (set-global-var 'call-with-current-continuation (make-scheme-primitive :type :call/cc))
-
+  (set-global-var 'call/cc (make-scheme-primitive :type :call/cc))
+  
   (mapc #'init-cl-equiv *cl-equivs*)
-
-  (maphash #'install-scheme-macro *registered-macros*)
-    
+  (maphash #'install-scheme-macro *registered-macros*) 
   *global-env*)
 
 (defun start-scheme-rspl ()
