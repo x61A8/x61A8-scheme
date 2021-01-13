@@ -254,6 +254,10 @@
     (vector->list (lambda (vector) (coerce vector 'list)))
     (list->vector (lambda (list) (coerce list 'simple-vector)))
     (vector-fill! fill)
+
+    ;; Control features
+    (procedure? (lambda (obj) (or (scheme-proc-p obj) (functionp obj))))
+    
     
     read (write prin1) (display princ) (newline terpri))
   "Common Lisp functions which are equivalent to scheme functions, or trivial to convert.")
