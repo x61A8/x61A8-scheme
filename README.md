@@ -1,5 +1,8 @@
 # x61A8-scheme
-This is a scheme interpreter built on top of the common lisp reader. It is an approximate implementation of R3RS. Tail call optimization (TCO) and call-with-current-continuation are both fully implemented. All number, string, and vector functions specified are also implemented.
+This is a scheme interpreter built on top of the common lisp reader.
+It is an approximate implementation of R3RS.
+Tail call optimization (TCO) and call-with-current-continuation are both fully implemented.
+All number, string, and vector functions specified are also implemented.
 
 ## Installation and Usage
 First clone the repository or otherwise download x61A8-scheme.lisp.
@@ -10,9 +13,13 @@ Then in the REPL of your Common Lisp implementation of choice type:
 (scheme)
 ```
 You will be presented with the prompt '=x>' and can begin entering scheme expressions.
+
 If you purposefully or accidentally break out of the scheme interpreter you can re-enter without resetting the environment by entering:
+
     (start-scheme-rspl)
+    
 While you are in the Common Lisp repl you can examine the global scheme environment by entering:
+
     *global-env*
 
 ## Divergences from R3RS
