@@ -48,6 +48,10 @@ The strategy to fix this would depend on how the user macro system is implemente
 Control functions like map and apply, as well as I/O like reading files are not currently supported.
 There are also various features that are not marked essential such as delay/force that are not implemented.
 
+### Add a test suite
+All expected behaviour is already detailed in the scheme specification.
+This reduces the amount of exploratory programming required, allowing automated tests to be entirely beneficial.
+
 ## Related Reading
 * Chapter 22 of Paradigms of AI Programming (PAIP) presents a scheme interpreter which was the base of this project.
 * Chapter 4 of Structure and Interpretation of Computer Programs (SICP) presents how to write a scheme interpreter in scheme.
