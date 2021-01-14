@@ -141,28 +141,30 @@
 				     continuation cc)
 			       (go :scheval))
 			      (t			       
-			       (let ((accum-args nil))
-				 (labels ((scheval-application (args)					  
-					    (if (scheme-proc-p proc)
-						(progn
-						  (setf expression (scheme-proc-code proc)
-							environment (extend-env (scheme-proc-params proc)
-										args
-										(scheme-proc-env proc))
-							continuation cc)
-						  (go :scheval))
-						(apply proc cc args)))
-					  (scheval-args (remaining-exps)
-					    (if (null remaining-exps)
-						(scheval-application (reverse accum-args))
-						(progn
-						  (setf expression (first remaining-exps)
-							environment env
-							continuation (lambda (val)
-								       (push val accum-args)
-								       (scheval-args (rest remaining-exps))))
-						  (go :scheval)))))				   
-				   (scheval-args (rest exp))))))))
+			       (labels ((scheval-application (args)					  
+					  (if (scheme-proc-p proc)
+					      (progn
+						(setf expression (scheme-proc-code proc)
+						      environment (extend-env (scheme-proc-params proc)
+									      args
+									      (scheme-proc-env proc))
+						      continuation cc)
+						(go :scheval))
+					      (apply proc cc args)))
+					(scheval-args (remaining-exps cont)
+					  (if (null remaining-exps)
+					      (funcall cont nil)
+					      (progn
+						(setf expression (first remaining-exps)
+						      environment env
+						      continuation (lambda (first-val)
+								     (scheval-args (rest remaining-exps)
+										   (lambda (rest-val)
+										     (funcall cont (cons first-val rest-val))))))
+						(go :scheval)))))				   
+				 (scheval-args (rest exp)
+					       (lambda (args)
+						 (scheval-application args))))))))
 		(go :scheval)))))))
 
 ;;; Common Lisp function integration
